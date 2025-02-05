@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.SQLite;
 using System.Windows.Forms;
 
@@ -446,6 +447,7 @@ namespace EmployeeManagementSystem
         {
             hidden_button_setA();
             ClearInputFields();
+            LoadAttendanceForToday();
         }
         private void hidden_button_setA()
         {
@@ -512,6 +514,47 @@ namespace EmployeeManagementSystem
                 MessageBox.Show("Database clear action was canceled.");
             }
         }
+        private void LoadAttendanceForToday()
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))
+            {
+                try
+                {
+                    connection.Open();
+
+                    // Get today's date (ignoring the time part)
+                    string today = DateTime.Now.ToString("yyyy-MM-dd"); // Get today's date in the desired format
+
+                    string query = @"
+                SELECT EmployeeNumber, CheckInTime, CheckOutTime, Status
+                FROM Attendance
+                WHERE DATE(Attendance.Date) = @Today;  -- Use DATE() to ignore time part
+            ";
+
+                    using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                    {
+                        // Adding parameters to avoid SQL injection
+                        command.Parameters.AddWithValue("@Today", today);
+
+                        using (SQLiteDataReader reader = command.ExecuteReader())
+                        {
+                            // Create a DataTable to hold the data
+                            DataTable dt = new DataTable();
+                            dt.Load(reader);
+
+                            // Bind the DataTable to the DataGridView
+                            dg_attendanceinfo.DataSource = dt;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading attendance data: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+
 
 
         //Tab Payroll
@@ -761,6 +804,18 @@ namespace EmployeeManagementSystem
         }
 
         private void lbl_signout_Click(object sender, EventArgs e)
+        {
+            // Hide the MainForm2 to log out the user
+            this.Hide();
+
+            // Create a new instance of LoginPage
+            LoginPage loginPageForm = new LoginPage();
+
+            // Show the LoginPage
+            loginPageForm.Show();
+        }
+
+        private void signOutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Hide the MainForm2 to log out the user
             this.Hide();
