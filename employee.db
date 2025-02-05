@@ -1,0 +1,6 @@
+CREATE TABLE Employees (
+    EmployeeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Position TEXT NOT NULL,
+    Salary REAL NOT NULL
+);
